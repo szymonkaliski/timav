@@ -1,0 +1,19 @@
+{
+  "name": "timav",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Szymon Kaliski <hi@szymonkaliski.com> (http://szymonkaliski.com)",
+  "license": "MIT",
+  "dependencies": {
+    "env-paths": "^2.2.0",
+    "googleapis": "^45.0.0",
+    "lodash": "^4.17.15",
+    "mkdirp": "^0.5.1",
+    "yargs": "^14.2.0"
+  }
+}
