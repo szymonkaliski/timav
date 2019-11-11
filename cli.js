@@ -3,9 +3,11 @@
 const yargs = require("yargs");
 
 const cache = require("./cache");
+const stats = require("./stats");
 
 const args = yargs
   .command("cache", "cache updated events")
+  .command("stats", "show basic stats")
   .demandCommand(1, "you need to provide a command")
   .option("calendar", {
     alias: "c",
@@ -20,6 +22,10 @@ const COMMANDS = {
     cache({
       calendar: args.calendar
     });
+  },
+
+  stats: () => {
+    stats();
   }
 };
 

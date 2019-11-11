@@ -1,28 +1,18 @@
 const debug = require("debug")("cache");
-const envPaths = require("env-paths");
 const fs = require("fs");
-const mkdirp = require("mkdirp");
-const path = require("path");
 const readline = require("readline");
 const { OAuth2Client } = require("google-auth-library");
 const { chain } = require("lodash");
 const { google } = require("googleapis");
 
-const CACHE_PATH = envPaths("timav").cache;
-const CONFIG_PATH = envPaths("timav").config;
-
-mkdirp(CACHE_PATH);
-mkdirp(CONFIG_PATH);
-
-const CREDENTIALS_PATH = path.join(CONFIG_PATH, "credentials.json");
-const TOKEN_PATH = path.join(CACHE_PATH, "token.json");
-const SYNC_TOKEN_PATH = path.join(CACHE_PATH, "sync_token.json");
-const EVENTS_PATH = path.join(CACHE_PATH, "events.json");
+const { parseEvent } = require("../utils/parse");
+const { CREDENTIALS_PATH, TOKEN_PATH, SYNC_TOKEN_PATH, EVENTS_PATH, PARSED_EVENTS_PATH } = require("../utils/paths");
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
 if (!fs.existsSync(CREDENTIALS_PATH)) {
   console.log("No .credentials.json found, create one here: https://console.developers.google.com/");
+
   process.exit(1);
 }
 
@@ -164,6 +154,11 @@ const storeEvents = events => {
   debug("Events stored in:", EVENTS_PATH);
 };
 
+const storeParsedEvents = events => {
+  fs.writeFileSync(PARSED_EVENTS_PATH, JSON.stringify(events, null, 2));
+  debug("Parsed events stored in:", PARSED_EVENTS_PATH);
+};
+
 const getStoredEvents = () => {
   if (fs.existsSync(EVENTS_PATH)) {
     return require(EVENTS_PATH);
@@ -219,16 +214,6 @@ module.exports = options => {
             debug("API events\n", events);
 
             finalEvents = chain(prevEvents)
-              .filter(e => {
-                const matchingEvent = events.find(e2 => e2.id === e.id);
-
-                if (matchingEvent && matchingEvent.status === "cancelled") {
-                  debug("Removed event\n", matchingEvent);
-                  return false;
-                }
-
-                return true;
-              })
               .map(e => {
                 const matchingEvent = events.find(e2 => e2.id === e.id);
 
@@ -251,14 +236,15 @@ module.exports = options => {
                   return !matchingEvent;
                 })
               )
+              .filter(e => e.status !== "cancelled")
               .value();
 
             storeEvents(finalEvents);
+
+            storeParsedEvents(finalEvents.map(parseEvent));
           }
 
           storeSyncToken(syncToken);
-
-          // all events are in finalEvents
         }
       );
     });
