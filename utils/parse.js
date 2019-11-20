@@ -90,4 +90,4 @@ const parseEvent = event => {
   };
 };
 
-module.exports = { parseEvent };
+module.exports = { parseEvent, parseProject };
