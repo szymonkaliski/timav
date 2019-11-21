@@ -240,7 +240,6 @@ module.exports = options => {
               .value();
 
             storeEvents(finalEvents);
-
             storeParsedEvents(finalEvents.map(parseEvent));
           }
 

@@ -46,32 +46,27 @@ const filterEvent = (event, filtering) => {
 
 const filterEvents = (events, filtering) => {
   if (isArray(filtering)) {
-    const [logic, filter] = filtering;
+    console.error("array-based filtering is not supported (yet)");
 
-    // filter each of the children recursively
-    const filtered = filter.map(f => filterEvents(events, f));
+    // const [logic, filter] = filtering;
 
-    if (logic === "and") {
-      // wa want only events with keys that are in each filter
-      return Object.keys(events)
-        .filter(key => filtered.every(filteredEvents => Object.keys(filteredEvents).indexOf(key) >= 0))
-        .reduce((memo, key) => Object.assign(memo, { [key]: events[key] }), {});
-    }
+    // // filter each of the children recursively
+    // const filtered = filter.map(f => filterEvents(events, f));
 
-    if (logic === "or") {
-      // just merge all the filtered events
-      return filtered.reduce((memo, events) => Object.assign(memo, events), {});
-    }
+    // if (logic === "and") {
+    //   // wa want only events with keys that are in each filter
+    //   return Object.keys(events)
+    //     .filter(key => filtered.every(filteredEvents => Object.keys(filteredEvents).indexOf(key) >= 0))
+    //     .reduce((memo, key) => Object.assign(memo, { [key]: events[key] }), {});
+    // }
+
+    // if (logic === "or") {
+    //   // just merge all the filtered events
+    //   return filtered.reduce((memo, events) => Object.assign(memo, events), {});
+    // }
   } else {
     // if filtering is not an array, it means it's stringified tag + subtag
-    return Object.keys(events)
-      .filter(key => {
-        const event = events[key];
-        return filterEvent(event, filtering);
-      })
-      .reduce((memo, key) => {
-        return Object.assign(memo, { [key]: events[key] });
-      }, {});
+    return events.filter(event => filterEvent(event, filtering));
   }
 };
 

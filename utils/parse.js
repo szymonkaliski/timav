@@ -41,7 +41,7 @@ const parseWithTimezone = (dateStr, zone) => {
 };
 
 const parseEvent = event => {
-  // full-day events become markers
+  // full-day events are markers
   const isMarker =
     event.start.date &&
     event.end.date &&
@@ -55,7 +55,6 @@ const parseEvent = event => {
   const orgEnd = event.end;
 
   const startDateStr = parseWithTimezone(orgStart.dateTime || orgStart.date, orgStart.timeZone);
-
   const endDateStr = parseWithTimezone(orgEnd.dateTime || orgEnd.date, orgEnd.timeZone);
 
   const duration = !isMarker ? end - start : 0;

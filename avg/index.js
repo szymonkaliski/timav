@@ -1,11 +1,12 @@
 const {
+  differenceInDays,
   endOfYesterday,
   startOfWeek,
   startOfMonth,
   startOfYear,
   isAfter
 } = require("date-fns");
-const { chain, sum, sumBy } = require("lodash");
+const { chain, sum, sumBy, minBy } = require("lodash");
 
 const { getParsedEvents } = require("../utils/paths");
 const { filterEvents } = require("../utils/filter");
@@ -14,16 +15,15 @@ const toHours = ms => ms / (60 * 60 * 1000);
 
 module.exports = ({ query }) => {
   const events = Object.values(filterEvents(getParsedEvents(), query));
+  const oldestEvent = minBy(events, e => new Date(e.start));
 
   const timeframes = [
     { name: "Today:      ", startDate: endOfYesterday() },
     { name: "This Week:  ", startDate: startOfWeek(new Date()) },
     { name: "This Month: ", startDate: startOfMonth(new Date()) },
     { name: "This Year:  ", startDate: startOfYear(new Date()) },
-    { name: "All Time:   " }
+    { name: "All Time:   ", startDate: new Date(oldestEvent.start) }
   ];
-
-  // TODO: yearly since first event?
 
   timeframes.forEach(({ name, startDate }) => {
     const eventsByDates = chain(events)
@@ -32,11 +32,9 @@ module.exports = ({ query }) => {
       .map(group => sumBy(group, e => e.duration))
       .value();
 
-    const avgTime =
-      eventsByDates.length > 0
-        ? toHours(sum(eventsByDates) / eventsByDates.length)
-        : 0;
+    const daysInTimeframe = differenceInDays(new Date(), startDate) + 1;
+    const avgTime = toHours(sum(eventsByDates) / daysInTimeframe);
 
-    console.log(`${name}${avgTime.toFixed(2)}h`);
+    console.log(`${name}${avgTime.toFixed(2)}h/d`);
   });
 };
