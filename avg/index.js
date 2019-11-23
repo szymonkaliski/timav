@@ -1,11 +1,13 @@
 const {
   differenceInDays,
-  endOfYesterday,
+  startOfToday,
+  endOfToday,
   startOfWeek,
   startOfMonth,
   startOfYear,
-  isAfter
+  isWithinInterval
 } = require("date-fns");
+
 const { chain, sum, sumBy, minBy } = require("lodash");
 
 const { getParsedEvents } = require("../utils/paths");
@@ -13,28 +15,33 @@ const { filterEvents } = require("../utils/filter");
 
 const toHours = ms => ms / (60 * 60 * 1000);
 
-module.exports = ({ query }) => {
+module.exports = ({ query, timeframe }) => {
   const events = Object.values(filterEvents(getParsedEvents(), query));
   const oldestEvent = minBy(events, e => new Date(e.start));
 
-  const timeframes = [
-    { name: "Today:      ", startDate: endOfYesterday() },
-    { name: "This Week:  ", startDate: startOfWeek(new Date()) },
-    { name: "This Month: ", startDate: startOfMonth(new Date()) },
-    { name: "This Year:  ", startDate: startOfYear(new Date()) },
-    { name: "All Time:   ", startDate: new Date(oldestEvent.start) }
-  ];
+  const timeframes = {
+    today: { startDate: startOfToday() },
+    week: { startDate: startOfWeek(new Date()) },
+    month: { startDate: startOfMonth(new Date()) },
+    year: { startDate: startOfYear(new Date()) },
+    all: { startDate: new Date(oldestEvent.start) }
+  };
 
-  timeframes.forEach(({ name, startDate }) => {
-    const eventsByDates = chain(events)
-      .filter(e => (startDate ? isAfter(new Date(e.start), startDate) : true))
-      .groupBy(e => e.startDateStr.split("T")[0])
-      .map(group => sumBy(group, e => e.duration))
-      .value();
+  const { startDate } = timeframes[timeframe];
 
-    const daysInTimeframe = differenceInDays(new Date(), startDate) + 1;
-    const avgTime = toHours(sum(eventsByDates) / daysInTimeframe);
+  const eventsByDates = chain(events)
+    .filter(e =>
+      isWithinInterval(new Date(e.start), {
+        start: startDate,
+        end: endOfToday()
+      })
+    )
+    .groupBy(e => e.startDateStr.split("T")[0])
+    .map(group => sumBy(group, e => e.duration))
+    .value();
 
-    console.log(`${name}${avgTime.toFixed(2)}h/d`);
-  });
+  const daysInTimeframe = differenceInDays(new Date(), startDate) + 1;
+  const avgTime = toHours(sum(eventsByDates) / daysInTimeframe);
+
+  console.log(`${avgTime.toFixed(2)}h/d`);
 };

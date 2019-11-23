@@ -5,7 +5,20 @@ cd "$DIR/../" || exit 1
 
 
 ./cli.js -c Tracking stats
+
 printf "\n@work:\n"
-./cli.js -c Tracking avg @work
+printf "\nNow: "
+./cli.js -c Tracking avg @work -t today
+printf "Avg: "
+./cli.js -c Tracking avg @work -t year
+printf "\n"
+./cli.js -c Tracking balance @work -n 4
+
 printf "\n@personal:\n"
-./cli.js -c Tracking avg @personal
+printf "\nNow: "
+./cli.js -c Tracking avg @personal -t today
+printf "Avg: "
+./cli.js -c Tracking avg @personal -t year
+printf "\n"
+./cli.js -c Tracking balance @personal -n 4
+
