@@ -17,13 +17,8 @@ const PARSED_EVENTS_PATH = path.join(DATA_PATH, "parsed_events.json");
 
 const getParsedEvents = () => {
   if (fs.existsSync(PARSED_EVENTS_PATH)) {
-    console.time("get");
     const data = fs.readFileSync(PARSED_EVENTS_PATH, { encoding: "utf-8" });
-    console.timeEnd("get");
-
-    console.time("parse");
     const parsed = JSON.parse(data);
-    console.timeEnd("parse");
 
     return parsed;
   }

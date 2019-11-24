@@ -32,9 +32,7 @@ const parseISOLocal = str => {
 };
 
 module.exports = ({ query }) => {
-  console.time(1);
   const events = sortBy(Object.values(filterEvents(getParsedEvents(), query)), e => parseISOLocal(e.startDateStr));
-  console.timeEnd(1);
 
   const durationDays = differenceInDays(
     parseISOLocal(get(last(events), "startDateStr")),
