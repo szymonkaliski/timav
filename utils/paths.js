@@ -3,22 +3,29 @@ const fs = require("fs");
 const mkdirp = require("mkdirp");
 const path = require("path");
 
-const CACHE_PATH = envPaths("timav").cache;
 const CONFIG_PATH = envPaths("timav").config;
+const DATA_PATH = envPaths("timav").data;
 
-mkdirp(CACHE_PATH);
+mkdirp(DATA_PATH);
 mkdirp(CONFIG_PATH);
 
 const CREDENTIALS_PATH = path.join(CONFIG_PATH, "credentials.json");
-const TOKEN_PATH = path.join(CACHE_PATH, "token.json");
-const SYNC_TOKEN_PATH = path.join(CACHE_PATH, "sync_token.json");
-const EVENTS_PATH = path.join(CACHE_PATH, "events.json");
-const PARSED_EVENTS_PATH = path.join(CACHE_PATH, "parsed_events.json");
+const TOKEN_PATH = path.join(DATA_PATH, "token.json");
+const SYNC_TOKEN_PATH = path.join(DATA_PATH, "sync_token.json");
+const EVENTS_PATH = path.join(DATA_PATH, "events.json");
+const PARSED_EVENTS_PATH = path.join(DATA_PATH, "parsed_events.json");
 
 const getParsedEvents = () => {
   if (fs.existsSync(PARSED_EVENTS_PATH)) {
+    console.time("get");
     const data = fs.readFileSync(PARSED_EVENTS_PATH, { encoding: "utf-8" });
-    return JSON.parse(data);
+    console.timeEnd("get");
+
+    console.time("parse");
+    const parsed = JSON.parse(data);
+    console.timeEnd("parse");
+
+    return parsed;
   }
 
   return [];

@@ -6,6 +6,7 @@ const cache = require("./cache");
 const balance = require("./balance");
 const stats = require("./stats");
 const avg = require("./avg");
+const habit = require("./habit");
 
 const args = yargs
   .command("cache", "cache updated events")
@@ -23,6 +24,7 @@ const args = yargs
       describe: "show last [n] weeks"
     });
   })
+  .command("habit [query]", "habit and streak for [query]")
   .demandCommand(1, "you need to provide a command")
   .option("calendar", {
     alias: "c",
@@ -49,6 +51,10 @@ const COMMANDS = {
 
   balance: () => {
     balance({ query: args.query, n: args.n });
+  },
+
+  habit: () => {
+    habit({ query: args.query });
   }
 };
 

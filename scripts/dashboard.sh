@@ -22,3 +22,9 @@ printf "Avg: "
 printf "\n"
 ./cli.js -c Tracking balance @personal -n 4
 
+printf "\n"
+
+./cli.js -c Tracking habit @health
+./cli.js -c Tracking habit @personal
+./cli.js -c Tracking habit @journal
+./cli.js -c Tracking habit @language

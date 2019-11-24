@@ -39,5 +39,5 @@ module.exports = ({ query, n = 4 }) => {
     .reverse()
     .value();
 
-  console.log(chart(grouped, Math.min(40, process.stdout.columns)));
+  console.log(chart(grouped, Math.min(66, process.stdout.columns)));
 };
