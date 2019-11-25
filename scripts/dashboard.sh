@@ -28,3 +28,7 @@ printf "\n"
 ./cli.js -c Tracking habit @personal
 ./cli.js -c Tracking habit @journal
 ./cli.js -c Tracking habit @language
+
+printf "\n"
+
+./cli.js -c Tracking projects -n 10
