@@ -15,12 +15,22 @@ const SYNC_TOKEN_PATH = path.join(DATA_PATH, "sync_token.json");
 const EVENTS_PATH = path.join(DATA_PATH, "events.json");
 const PARSED_EVENTS_PATH = path.join(DATA_PATH, "parsed_events.json");
 
+const parseISOLocal = str => {
+  const d = str.split(/\D/);
+  return new Date(d[0], d[1] - 1, d[2], d[3], d[4], d[5]);
+};
+
 const getParsedEvents = () => {
   if (fs.existsSync(PARSED_EVENTS_PATH)) {
     const data = fs.readFileSync(PARSED_EVENTS_PATH, { encoding: "utf-8" });
     const parsed = JSON.parse(data);
 
-    return parsed;
+    return parsed.map(e => {
+      e.start = parseISOLocal(e.start);
+      e.end = parseISOLocal(e.end);
+
+      return e;
+    });
   }
 
   return [];

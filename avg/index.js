@@ -17,21 +17,22 @@ const toHours = ms => ms / (60 * 60 * 1000);
 
 module.exports = ({ query, timeframe }) => {
   const events = Object.values(filterEvents(getParsedEvents(), query));
-  const oldestEvent = minBy(events, e => new Date(e.start));
+  const today = new Date();
 
   const timeframes = {
-    today: { startDate: startOfToday() },
-    week: { startDate: startOfWeek(new Date()) },
-    month: { startDate: startOfMonth(new Date()) },
-    year: { startDate: startOfYear(new Date()) },
-    all: { startDate: new Date(oldestEvent.start) }
+    today: { getStartDate: () => startOfToday() },
+    week: { getStartDate: () => startOfWeek(today) },
+    month: { getStartDate: () => startOfMonth(today) },
+    year: { getStartDate: () => startOfYear(today) },
+    all: { getStartDate: () => minBy(events, e => e.start).start }
   };
 
-  const { startDate } = timeframes[timeframe];
+  const { getStartDate } = timeframes[timeframe];
+  const startDate = getStartDate();
 
   const eventsByDates = chain(events)
     .filter(e =>
-      isWithinInterval(new Date(e.start), {
+      isWithinInterval(e.start, {
         start: startDate,
         end: endOfToday()
       })
@@ -40,7 +41,7 @@ module.exports = ({ query, timeframe }) => {
     .map(group => sumBy(group, e => e.duration))
     .value();
 
-  const daysInTimeframe = differenceInDays(new Date(), startDate) + 1;
+  const daysInTimeframe = differenceInDays(today, startDate) + 1;
   const avgTime = toHours(sum(eventsByDates) / daysInTimeframe);
 
   console.log(`${avgTime.toFixed(2)}h/d`);

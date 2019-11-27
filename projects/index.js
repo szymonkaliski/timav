@@ -5,11 +5,6 @@ const { filterEvents } = require("../utils/filter");
 
 const chart = require("./chart");
 
-const parseISOLocal = str => {
-  const d = str.split(/\D/);
-  return new Date(d[0], d[1] - 1, d[2], d[3], d[4], d[5]);
-};
-
 const toHours = ms => ms / (60 * 60 * 1000);
 
 module.exports = ({ query, n }) => {
@@ -24,10 +19,10 @@ module.exports = ({ query, n }) => {
     .filter(e => !!e.project)
     .groupBy(e => e.project)
     .map(g => {
-      const start = parseISOLocal(minBy(g, e => parseISOLocal(e.start)).start);
-      const end = parseISOLocal(maxBy(g, e => parseISOLocal(e.end)).end);
+      const start = minBy(g, e => e.start).start;
+      const end = maxBy(g, e => e.end).end;
       const totalTime = toHours(sumBy(g, e => e.duration));
-      const totalDays = Object.keys(groupBy(g, e => e.start.split("T")[0]))
+      const totalDays = Object.keys(groupBy(g, e => e.startDateStr.split("T")[0]))
         .length;
 
       const tags = chain(g)
