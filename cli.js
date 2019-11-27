@@ -38,6 +38,7 @@ const args = yargs
       });
     }
   )
+  .command("dashboard", "show dashboard overview")
   .demandCommand(1, "you need to provide a command")
   .option("calendar", {
     alias: "c",
@@ -49,9 +50,31 @@ const [TYPE] = args._;
 
 if (TYPE === "cache") {
   cache({ calendar: args.calendar });
+} else if (TYPE === "dashboard") {
+  const events = getParsedEvents();
+
+  const renderBalance = query => {
+    console.log(`${query}
+Now: ${avg.render(avg.calculate({ events, query, timeframe: "today" }))}
+Avg: ${avg.render(avg.calculate({ events, query, timeframe: "year" }))}
+
+${balance.render(balance.calculate({ events, query, n: 4 }))}
+  `);
+  };
+
+  renderBalance("@work");
+  renderBalance("@personal");
+
+  ["@health", "@personal", "@journal", "@language"].forEach(query => {
+    console.log(habit.render(habit.calculate({ events, query })));
+  });
+
+  console.log(`
+${projects.render(projects.calculate({ events, n: 10 }))}
+`);
 } else {
   const COMMANDS = { stats, avg, balance, habit, projects };
 
   const { render, calculate } = COMMANDS[TYPE];
-  render(calculate({ events: getParsedEvents(), ...args }));
+  console.log(render(calculate({ events: getParsedEvents(), ...args })));
 }

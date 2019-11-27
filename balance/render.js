@@ -33,5 +33,5 @@ const chart = (data, maxBarLength = 100) => {
 };
 
 module.exports = ({ data }) => {
-  console.log(chart(data, Math.min(66, process.stdout.columns)));
+  return chart(data, Math.min(66, process.stdout.columns));
 };

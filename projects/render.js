@@ -1,5 +1,7 @@
 const { minBy, maxBy, range } = require("lodash");
 
+const { toHours } = require("../utils/date");
+
 const LINE = "▎";
 const LEFT_WHISKER = "┣";
 const RIGHT_WHISKER = "┫";
@@ -43,7 +45,7 @@ const chart = (data, maxBarLength = 100) => {
         })
         .join("");
 
-      const status = `${d.totalTime.toFixed(2)}h / ${d.totalDays}d`;
+      const status = `${toHours(d.totalTime).toFixed(2)}h / ${d.totalDays}d`;
       const project =
         d.project +
         " ".repeat(maxBarLength - status.length - d.project.length) +
@@ -55,5 +57,5 @@ const chart = (data, maxBarLength = 100) => {
 };
 
 module.exports = ({ projects }) => {
-  console.log(chart(projects, Math.min(80, process.stdout.columns)));
+  return chart(projects, Math.min(80, process.stdout.columns));
 };

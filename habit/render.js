@@ -19,6 +19,6 @@ module.exports = ({ query, streak, histogram }) => {
   info += " ".repeat(width - info.length - status.length);
   info += status;
 
-  console.log(info);
-  console.log(chart(histogram, width));
+  return `${info}
+${chart(histogram, width)}`;
 };
