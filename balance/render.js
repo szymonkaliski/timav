@@ -1,9 +1,9 @@
-// adapted from https://github.com/morishin/ascii-horizontal-barchart
+// chart adapted from https://github.com/morishin/ascii-horizontal-barchart
 
 const { maxBy } = require("lodash");
+const { toHours } = require("../utils/date");
 
 const bar = (value, maxValue, maxBarLength) => {
-  // const fractions = ["▏", "▎", "▍", "▋", "▊", "▉"];
   const fractions = ["━"];
 
   const barLength = (value * maxBarLength) / maxValue;
@@ -20,16 +20,18 @@ const bar = (value, maxValue, maxBarLength) => {
 };
 
 const chart = (data, maxBarLength = 100) => {
-  const maxValue = maxBy(data, d => d.value).value;
+  const maxAvg = maxBy(data, d => d.avg).avg;
 
   return data
     .map(d => {
-      const prefix = d.key;
-      const barText = bar(d.value, maxValue, maxBarLength);
+      const prefix = d.week;
+      const barText = bar(d.avg, maxAvg, maxBarLength);
 
-      return `${prefix}: ${d.value.toFixed(2)}h/d  ${barText}`;
+      return `${prefix}: ${toHours(d.avg).toFixed(2)}h/d  ${barText}`;
     })
     .join("\n");
 };
 
-module.exports = chart;
+module.exports = ({ data }) => {
+  console.log(chart(data, Math.min(66, process.stdout.columns)));
+};

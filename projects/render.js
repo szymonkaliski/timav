@@ -5,7 +5,7 @@ const LEFT_WHISKER = "┣";
 const RIGHT_WHISKER = "┫";
 const WHISKER = "━";
 
-module.exports = (data, maxBarLength = 100) => {
+const chart = (data, maxBarLength = 100) => {
   const earliest = minBy(data, d => d.start).start;
   const latest = maxBy(data, d => d.end).end;
 
@@ -52,4 +52,8 @@ module.exports = (data, maxBarLength = 100) => {
       return project + "\n" + bar;
     })
     .join("\n");
+};
+
+module.exports = ({ projects }) => {
+  console.log(chart(projects, Math.min(80, process.stdout.columns)));
 };

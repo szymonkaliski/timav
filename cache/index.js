@@ -6,12 +6,20 @@ const { chain } = require("lodash");
 const { google } = require("googleapis");
 
 const { parseEvent } = require("../utils/parse");
-const { CREDENTIALS_PATH, TOKEN_PATH, SYNC_TOKEN_PATH, EVENTS_PATH, PARSED_EVENTS_PATH } = require("../utils/paths");
+const {
+  CREDENTIALS_PATH,
+  TOKEN_PATH,
+  SYNC_TOKEN_PATH,
+  EVENTS_PATH,
+  PARSED_EVENTS_PATH
+} = require("../utils/paths");
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
 if (!fs.existsSync(CREDENTIALS_PATH)) {
-  console.log("No .credentials.json found, create one here: https://console.developers.google.com/");
+  console.log(
+    "No .credentials.json found, create one here: https://console.developers.google.com/"
+  );
 
   process.exit(1);
 }
@@ -116,7 +124,10 @@ const getEvents = ({ auth, calendarId, pageToken, syncToken }, callback) => {
   calendar.events.list(config, callback);
 };
 
-const getAllEvents = ({ auth, calendarId, pageToken, syncToken, allEvents }, callback) => {
+const getAllEvents = (
+  { auth, calendarId, pageToken, syncToken, allEvents },
+  callback
+) => {
   allEvents = allEvents || [];
 
   debug("Downloading page:", { pageToken, syncToken });
@@ -184,7 +195,9 @@ module.exports = options => {
         process.exit(1);
       }
 
-      const calendar = res.data.items.find(({ summary }) => summary === options.calendar);
+      const calendar = res.data.items.find(
+        ({ summary }) => summary === options.calendar
+      );
 
       if (!calendar) {
         console.log("Error: no matching calendar found");
@@ -239,8 +252,13 @@ module.exports = options => {
               .filter(e => e.status !== "cancelled")
               .value();
 
+            const parsedEvents = chain(finalEvents)
+              .map(parseEvent)
+              .sortBy(e => e.start)
+              .value();
+
             storeEvents(finalEvents);
-            storeParsedEvents(finalEvents.map(parseEvent));
+            storeParsedEvents(parsedEvents);
           }
 
           storeSyncToken(syncToken);

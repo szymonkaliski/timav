@@ -9,11 +9,14 @@ const habit = require("./habit");
 const projects = require("./projects");
 const stats = require("./stats");
 
+const { getParsedEvents } = require("./utils/paths");
+
 const args = yargs
   .command("cache", "cache updated events")
   .command("stats", "show basic stats")
   .command("avg [query]", "average time for [query]", yargs => {
-    yargs.option("t", {
+    yargs.option("timeframe", {
+      alias: "t",
       describe: "time span for avg",
       default: "today",
       choices: ["today", "week", "month", "year", "all"]
@@ -44,32 +47,11 @@ const args = yargs
 
 const [TYPE] = args._;
 
-const COMMANDS = {
-  cache: () => {
-    cache({
-      calendar: args.calendar
-    });
-  },
+if (TYPE === "cache") {
+  cache({ calendar: args.calendar });
+} else {
+  const COMMANDS = { stats, avg, balance, habit, projects };
 
-  stats: () => {
-    stats();
-  },
-
-  avg: () => {
-    avg({ query: args.query, timeframe: args.t });
-  },
-
-  balance: () => {
-    balance({ query: args.query, n: args.n });
-  },
-
-  habit: () => {
-    habit({ query: args.query });
-  },
-
-  projects: () => {
-    projects({ query: args.query, n: args.n });
-  }
-};
-
-COMMANDS[TYPE]();
+  const { render, calculate } = COMMANDS[TYPE];
+  render(calculate({ events: getParsedEvents(), ...args }));
+}
