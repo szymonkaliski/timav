@@ -53,6 +53,8 @@ if (TYPE === "cache") {
 } else if (TYPE === "dashboard") {
   const events = getParsedEvents();
 
+  console.log(stats.render(stats.calculate({ events })));
+
   const renderBalance = query => {
     console.log(`${query}
 Now: ${avg.render(avg.calculate({ events, query, timeframe: "today" }))}
