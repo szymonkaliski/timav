@@ -5,6 +5,7 @@ const FULL_DAY_EVENT_DATE_LENGTH = "yyyy-mm-dd".length;
 
 const parseProject = title => {
   const project = title.split("@")[0].trim();
+
   const tags = chain(title)
     .split("@")
     .slice(1)
@@ -54,8 +55,15 @@ const parseEvent = event => {
   const orgStart = event.start;
   const orgEnd = event.end;
 
-  const startDateStr = parseWithTimezone(orgStart.dateTime || orgStart.date, orgStart.timeZone);
-  const endDateStr = parseWithTimezone(orgEnd.dateTime || orgEnd.date, orgEnd.timeZone);
+  const startDateStr = parseWithTimezone(
+    orgStart.dateTime || orgStart.date,
+    orgStart.timeZone
+  );
+
+  const endDateStr = parseWithTimezone(
+    orgEnd.dateTime || orgEnd.date,
+    orgEnd.timeZone
+  );
 
   const duration = !isMarker ? end - start : 0;
   const id = event.id;
@@ -66,7 +74,7 @@ const parseEvent = event => {
   const summary = `${project} ${tags
     .map(({ tag, subTag }) => (subTag ? `@${tag}(${subTag})` : `@${tag}`))
     .sort()
-    .join(" ")}`;
+    .join(" ")}`.trim();
 
   return {
     id,

@@ -1,4 +1,4 @@
-const { first, startCase, isArray } = require("lodash");
+const { startCase, isArray } = require("lodash");
 
 const { parseProject } = require("./parse");
 
@@ -24,29 +24,42 @@ const stringifyFiltering = filtering => {
 };
 
 const filterEvent = (event, filtering) => {
-  // ugly reuse of project parsing to get tags out...
-  const { tag, subTag } = first(parseProject(filtering).tags);
+  const { project, tags } = parseProject(filtering);
 
-  return event.tags.find(({ tag: eventTag, subTag: eventSubTag }) => {
-    if (tag && subTag) {
-      return eventTag === tag && eventSubTag === subTag;
-    }
+  let isMatching = true;
 
-    if (tag && !subTag) {
-      return eventTag === tag;
-    }
+  if (project.length > 0) {
+    isMatching = isMatching && event.project === project;
+  }
 
-    if (!tag && subTag) {
-      return eventSubTag === subTag;
-    }
+  if (tags.length > 0) {
+    tags.forEach(({ tag, subTag }) => {
+      isMatching =
+        isMatching &&
+        event.tags.find(({ tag: eventTag, subTag: eventSubTag }) => {
+          if (tag && subTag) {
+            return eventTag === tag && eventSubTag === subTag;
+          }
 
-    return false;
-  });
+          if (tag && !subTag) {
+            return eventTag === tag;
+          }
+
+          if (!tag && subTag) {
+            return eventSubTag === subTag;
+          }
+
+          return false;
+        });
+    });
+  }
+
+  return isMatching;
 };
 
 const filterEvents = (events, filtering) => {
   if (isArray(filtering)) {
-    console.error("array-based filtering is not supported (yet)");
+    console.error("array-based filtering is not supported yet");
 
     // const [logic, filter] = filtering;
 
