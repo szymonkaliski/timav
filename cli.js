@@ -53,7 +53,7 @@ if (TYPE === "cache") {
 } else if (TYPE === "dashboard") {
   const events = getParsedEvents({ calendar: args.calendar });
 
-  console.log(stats.render(stats.calculate({ events })));
+  console.log(stats.render(stats.calculate({ events, calendar: args.calendar })));
 
   const renderBalance = query => {
     console.log(`${query}
