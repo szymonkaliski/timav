@@ -51,7 +51,7 @@ const [TYPE] = args._;
 if (TYPE === "cache") {
   cache({ calendar: args.calendar });
 } else if (TYPE === "dashboard") {
-  const events = getParsedEvents();
+  const events = getParsedEvents({ calendar: args.calendar });
 
   console.log(stats.render(stats.calculate({ events })));
 
@@ -78,5 +78,12 @@ ${projects.render(projects.calculate({ events, n: 10 }))}
   const COMMANDS = { stats, avg, balance, habit, projects };
 
   const { render, calculate } = COMMANDS[TYPE];
-  console.log(render(calculate({ events: getParsedEvents(), ...args })));
+  console.log(
+    render(
+      calculate({
+        events: getParsedEvents({ calendar: args.calendar }),
+        ...args
+      })
+    )
+  );
 }

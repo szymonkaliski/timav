@@ -10,19 +10,24 @@ mkdirp(DATA_PATH);
 mkdirp(CONFIG_PATH);
 
 const CREDENTIALS_PATH = path.join(CONFIG_PATH, "credentials.json");
-const TOKEN_PATH = path.join(DATA_PATH, "token.json");
-const SYNC_TOKEN_PATH = path.join(DATA_PATH, "sync_token.json");
-const EVENTS_PATH = path.join(DATA_PATH, "events.json");
-const PARSED_EVENTS_PATH = path.join(DATA_PATH, "parsed_events.json");
+
+const tokenPath = calendar => path.join(DATA_PATH, `${calendar}-token.json`);
+const syncTokenPath = calendar =>
+  path.join(DATA_PATH, `${calendar}-sync_token.json`);
+const eventsPath = calendar => path.join(DATA_PATH, `${calendar}-events.json`);
+const parsedEventsPath = calendar =>
+  path.join(DATA_PATH, `${calendar}-parsed_events.json`);
 
 const parseISOLocal = str => {
   const d = str.split(/\D/);
   return new Date(d[0], d[1] - 1, d[2], d[3], d[4], d[5]);
 };
 
-const getParsedEvents = () => {
-  if (fs.existsSync(PARSED_EVENTS_PATH)) {
-    const data = fs.readFileSync(PARSED_EVENTS_PATH, { encoding: "utf-8" });
+const getParsedEvents = ({ calendar }) => {
+  const fileName = parsedEventsPath(calendar);
+
+  if (fs.existsSync(fileName)) {
+    const data = fs.readFileSync(fileName, { encoding: "utf-8" });
     const parsed = JSON.parse(data);
 
     return parsed.map(e => {
@@ -36,9 +41,11 @@ const getParsedEvents = () => {
   return [];
 };
 
-const getSyncInfo = () => {
-  if (fs.existsSync(SYNC_TOKEN_PATH)) {
-    return require(SYNC_TOKEN_PATH);
+const getSyncInfo = ({ calendar }) => {
+  const fileName = syncTokenPath(calendar);
+
+  if (fs.existsSync(fileName)) {
+    return require(fileName);
   }
 
   return [];
@@ -46,11 +53,12 @@ const getSyncInfo = () => {
 
 module.exports = {
   CREDENTIALS_PATH,
-  TOKEN_PATH,
-  SYNC_TOKEN_PATH,
-  EVENTS_PATH,
-  PARSED_EVENTS_PATH,
 
   getSyncInfo,
-  getParsedEvents
+  getParsedEvents,
+
+  tokenPath,
+  syncTokenPath,
+  eventsPath,
+  parsedEventsPath
 };

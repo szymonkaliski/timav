@@ -8,10 +8,11 @@ const { google } = require("googleapis");
 const { parseEvent } = require("../utils/parse");
 const {
   CREDENTIALS_PATH,
-  TOKEN_PATH,
-  SYNC_TOKEN_PATH,
-  EVENTS_PATH,
-  PARSED_EVENTS_PATH
+
+  tokenPath,
+  syncTokenPath,
+  eventsPath,
+  parsedEventsPath
 } = require("../utils/paths");
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
@@ -26,26 +27,32 @@ if (!fs.existsSync(CREDENTIALS_PATH)) {
 
 // tokens
 
-const storeToken = token => {
-  fs.writeFileSync(TOKEN_PATH, JSON.stringify(token, null, 2));
-  debug("Token stored in:", TOKEN_PATH);
+const storeToken = ({ calendar }, token) => {
+  const fileName = tokenPath(calendar);
+
+  fs.writeFileSync(fileName, JSON.stringify(token, null, 2));
+  debug("Token stored in:", fileName);
 };
 
-const storeSyncToken = token => {
+const storeSyncToken = ({ calendar }, token) => {
+  const fileName = syncTokenPath(calendar);
+
   const time = new Date().getTime();
-  fs.writeFileSync(SYNC_TOKEN_PATH, JSON.stringify({ token, time }, null, 2));
-  debug("Sync token stored in:", SYNC_TOKEN_PATH);
+  fs.writeFileSync(fileName, JSON.stringify({ token, time }, null, 2));
+  debug("Sync token stored in:", fileName);
 };
 
-const getSyncToken = () => {
-  if (fs.existsSync(SYNC_TOKEN_PATH)) {
-    return require(SYNC_TOKEN_PATH).token;
+const getSyncToken = ({ calendar }) => {
+  const fileName = syncTokenPath(calendar);
+
+  if (fs.existsSync(fileName)) {
+    return require(fileName).token;
   }
 
   return { token: null, time: null };
 };
 
-const getNewToken = (oauth2Client, callback) => {
+const getNewToken = ({ calendar }, oauth2Client, callback) => {
   const authUrl = oauth2Client.generateAuthUrl({
     ["access_type"]: "offline",
     scope: SCOPES
@@ -69,7 +76,7 @@ const getNewToken = (oauth2Client, callback) => {
 
       oauth2Client.credentials = token;
 
-      storeToken(token);
+      storeToken({ calendar }, token);
       callback(null, oauth2Client);
     });
   });
@@ -77,16 +84,16 @@ const getNewToken = (oauth2Client, callback) => {
 
 // auth
 
-const authorize = (credentials, callback) => {
+const authorize = ({ calendar }, credentials, callback) => {
   const clientSecret = credentials.installed.client_secret;
   const clientId = credentials.installed.client_id;
   const redirectUrl = credentials.installed.redirect_uris[0];
 
   const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
 
-  fs.readFile(TOKEN_PATH, (err, token) => {
+  fs.readFile(tokenPath(calendar), (err, token) => {
     if (err) {
-      getNewToken(oauth2Client, callback);
+      getNewToken({ calendar }, oauth2Client, callback);
     } else {
       oauth2Client.credentials = JSON.parse(token);
       callback(null, oauth2Client);
@@ -160,19 +167,25 @@ const getAllEvents = (
   });
 };
 
-const storeEvents = events => {
-  fs.writeFileSync(EVENTS_PATH, JSON.stringify(events, null, 2));
-  debug("Events stored in:", EVENTS_PATH);
+const storeEvents = ({ calendar }, events) => {
+  const fileName = eventsPath(calendar);
+
+  fs.writeFileSync(fileName, JSON.stringify(events, null, 2));
+  debug("Events stored in:", fileName);
 };
 
-const storeParsedEvents = events => {
-  fs.writeFileSync(PARSED_EVENTS_PATH, JSON.stringify(events, null, 2));
-  debug("Parsed events stored in:", PARSED_EVENTS_PATH);
+const storeParsedEvents = ({ calendar }, events) => {
+  const fileName = parsedEventsPath(calendar);
+
+  fs.writeFileSync(fileName, JSON.stringify(events, null, 2));
+  debug("Parsed events stored in:", fileName);
 };
 
-const getStoredEvents = () => {
-  if (fs.existsSync(EVENTS_PATH)) {
-    return require(EVENTS_PATH);
+const getStoredEvents = ({ calendar }) => {
+  const fileName = eventsPath(calendar);
+
+  if (fs.existsSync(fileName)) {
+    return require(fileName);
   }
 
   return [];
@@ -183,7 +196,7 @@ const getStoredEvents = () => {
 module.exports = options => {
   const credentials = require(CREDENTIALS_PATH);
 
-  authorize(credentials, (err, auth) => {
+  authorize({ calendar: options.calendar }, credentials, (err, auth) => {
     if (err) {
       console.log("Error:", err);
       process.exit(1);
@@ -208,7 +221,7 @@ module.exports = options => {
         {
           auth,
           calendarId: calendar.id,
-          syncToken: getSyncToken()
+          syncToken: getSyncToken({ calendar: options.calendar })
         },
         (err, { events, syncToken }) => {
           if (err) {
@@ -216,7 +229,7 @@ module.exports = options => {
             process.exit(1);
           }
 
-          const prevEvents = getStoredEvents();
+          const prevEvents = getStoredEvents({ calendar: options.calendar });
           let finalEvents;
 
           if (events.length === 0) {
@@ -257,11 +270,11 @@ module.exports = options => {
               .sortBy(e => e.start)
               .value();
 
-            storeEvents(finalEvents);
-            storeParsedEvents(parsedEvents);
+            storeEvents({ calendar: options.calendar }, finalEvents);
+            storeParsedEvents({ calendar: options.calendar }, parsedEvents);
           }
 
-          storeSyncToken(syncToken);
+          storeSyncToken({ calendar: options.calendar }, syncToken);
         }
       );
     });
