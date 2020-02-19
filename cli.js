@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 
+const envPaths = require("env-paths");
+const fs = require("fs");
+const mkdirp = require("mkdirp");
+const path = require("path");
 const yargs = require("yargs");
+const { spawn } = require("child_process");
 
 const avg = require("./avg");
 const balance = require("./balance");
@@ -9,9 +14,16 @@ const habit = require("./habit");
 const projects = require("./projects");
 const stats = require("./stats");
 
+const CONFIG_PATH = envPaths("timav").config;
+const CONFIG_FILE = path.join(CONFIG_PATH, "config.json");
+const DEFAULT_CONFIG = {};
+
+mkdirp(CONFIG_PATH);
+
 const { getParsedEvents } = require("./utils/paths");
 
 const args = yargs
+  .command("config", "open configuration file")
   .command("cache", "cache updated events")
   .command("stats", "show basic stats")
   .command("avg [query]", "average time for [query]", yargs => {
@@ -40,20 +52,43 @@ const args = yargs
   )
   .command("dashboard", "show dashboard overview")
   .demandCommand(1, "you need to provide a command")
-  .option("calendar", {
-    alias: "c",
-    demandOption: true
-  })
   .help().argv;
 
 const [TYPE] = args._;
 
-if (TYPE === "cache") {
-  cache({ calendar: args.calendar });
-} else if (TYPE === "dashboard") {
-  const events = getParsedEvents({ calendar: args.calendar });
+const loadConfig = () => {
+  let config;
 
-  console.log(stats.render(stats.calculate({ events, calendar: args.calendar })));
+  try {
+    config = require(CONFIG_FILE);
+  } catch (e) {
+    console.log(e);
+    process.exit(1);
+  }
+
+  return config;
+};
+
+if (TYPE === "config") {
+  const editor = process.env.EDITOR || "vim";
+
+  if (!fs.existsSync(CONFIG_FILE)) {
+    fs.writeFileSync(
+      JSON.stringify(DEFAULT_CONFIG, null, 2),
+      CONFIG_FILE,
+      "utf-8"
+    );
+  }
+
+  spawn(editor, [CONFIG_FILE], { stdio: "inherit" });
+} else if (TYPE === "cache") {
+  cache({ calendar: loadConfig().calendar });
+} else if (TYPE === "dashboard") {
+  const events = getParsedEvents({ calendar: loadConfig().calendar });
+
+  console.log(
+    stats.render(stats.calculate({ events, calendar: loadConfig().calendar }))
+  );
 
   const renderBalance = query => {
     console.log(`${query}
@@ -78,10 +113,11 @@ ${projects.render(projects.calculate({ events, n: 10 }))}
   const COMMANDS = { stats, avg, balance, habit, projects };
 
   const { render, calculate } = COMMANDS[TYPE];
+
   console.log(
     render(
       calculate({
-        events: getParsedEvents({ calendar: args.calendar }),
+        events: getParsedEvents({ calendar: loadConfig().calendar }),
         ...args
       })
     )
