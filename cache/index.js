@@ -229,52 +229,50 @@ module.exports = options => {
             process.exit(1);
           }
 
-          const prevEvents = getStoredEvents({ calendar: options.calendar });
-          let finalEvents;
+          storeSyncToken({ calendar: options.calendar }, syncToken);
 
           if (events.length === 0) {
             debug("No changes");
-
-            finalEvents = prevEvents;
-          } else {
-            debug("API events\n", events);
-
-            finalEvents = chain(prevEvents)
-              .map(e => {
-                const matchingEvent = events.find(e2 => e2.id === e.id);
-
-                if (matchingEvent) {
-                  debug("Updated event\n", matchingEvent);
-                  return matchingEvent;
-                }
-
-                return e;
-              })
-              .concat(
-                events.filter(e => {
-                  // new
-                  const matchingEvent = prevEvents.find(e2 => e2.id === e.id);
-
-                  if (!matchingEvent) {
-                    debug("New event\n", e);
-                  }
-
-                  return !matchingEvent;
-                })
-              )
-              .filter(e => e.status !== "cancelled")
-              .value();
-
-            const parsedEvents = chain(finalEvents)
-              .map(parseEvent)
-              .sortBy(e => e.start)
-              .value();
-
-            storeEvents({ calendar: options.calendar }, finalEvents);
-            storeParsedEvents({ calendar: options.calendar }, parsedEvents);
+            return;
           }
 
-          storeSyncToken({ calendar: options.calendar }, syncToken);
+          debug("API events\n", events);
+
+          const prevEvents = getStoredEvents({ calendar: options.calendar });
+
+          const finalEvents = chain(prevEvents)
+            .map(e => {
+              const matchingEvent = events.find(e2 => e2.id === e.id);
+
+              if (matchingEvent) {
+                debug("Updated event\n", matchingEvent);
+                return matchingEvent;
+              }
+
+              return e;
+            })
+            .concat(
+              events.filter(e => {
+                // new
+                const matchingEvent = prevEvents.find(e2 => e2.id === e.id);
+
+                if (!matchingEvent) {
+                  debug("New event\n", e);
+                }
+
+                return !matchingEvent;
+              })
+            )
+            .filter(e => e.status !== "cancelled")
+            .value();
+
+          const parsedEvents = chain(finalEvents)
+            .map(parseEvent)
+            .sortBy(e => e.start)
+            .value();
+
+          storeEvents({ calendar: options.calendar }, finalEvents);
+          storeParsedEvents({ calendar: options.calendar }, parsedEvents);
         }
       );
     });

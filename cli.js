@@ -113,13 +113,15 @@ ${projects.render(projects.calculate({ events, n: 10 }))}
   const COMMANDS = { stats, avg, balance, habit, projects };
 
   const { render, calculate } = COMMANDS[TYPE];
+  const { calendar } = loadConfig();
 
-  console.log(
-    render(
-      calculate({
-        events: getParsedEvents({ calendar: loadConfig().calendar }),
-        ...args
-      })
-    )
-  );
+  const events = getParsedEvents({ calendar });
+
+  const renderData = calculate({
+    events,
+    calendar,
+    ...args
+  });
+
+  console.log(render(renderData));
 }

@@ -30,12 +30,14 @@ const getParsedEvents = ({ calendar }) => {
     const data = fs.readFileSync(fileName, { encoding: "utf-8" });
     const parsed = JSON.parse(data);
 
-    return parsed.map(e => {
+    const result = parsed.map(e => {
       e.start = parseISOLocal(e.start);
       e.end = parseISOLocal(e.end);
 
       return e;
     });
+
+    return result;
   }
 
   return [];
