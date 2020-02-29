@@ -11,6 +11,7 @@
   "author": "Szymon Kaliski <hi@szymonkaliski.com> (http://szymonkaliski.com)",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^3.0.0",
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
     "date-fns": "^2.9.0",

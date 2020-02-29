@@ -55,6 +55,7 @@ const getSyncInfo = ({ calendar }) => {
 
 module.exports = {
   CREDENTIALS_PATH,
+  CONFIG_PATH,
 
   getSyncInfo,
   getParsedEvents,

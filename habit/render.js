@@ -1,24 +1,30 @@
 const { chain } = require("lodash");
+const chalk = require("chalk");
 
 const chart = (data, maxBarLength = 100) => {
   return chain(data)
     .takeRight(maxBarLength)
-    .map(d => (d.length > 0 ? "━" : " "))
+    .map(d => (d.length > 0 ? "─" : " "))
     .join("")
     .value();
 };
 
 module.exports = ({ query, streak, histogram }) => {
   const width = Math.min(80, process.stdout.columns);
-  const status =
-    streak.current === streak.longest
-      ? `${streak.current}d`
-      : `${streak.current}d / ${streak.longest}d`;
+  const { current, longest } = streak;
 
-  let info = query;
+  const status =
+    current === longest ? `${current}d` : `${current}/${longest}d`;
+
+  const statusWithColors =
+    current === longest
+      ? `${chalk.gray(current)}d`
+      : `${chalk.gray(current)}${chalk.gray("/")}${chalk.gray(longest)}d`;
+
+  let info = query.replace("@", "");
   info += " ".repeat(width - info.length - status.length);
-  info += status;
+  info += statusWithColors;
 
   return `${info}
-${chart(histogram, width)}`;
+${chalk.gray(chart(histogram, width))}`;
 };
