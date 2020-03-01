@@ -31,7 +31,7 @@ const args = yargs
       default: 10
     });
   })
-  .command("habit [query]", "habit and streak for [query]")
+  .command("habit <query>", "habit and streak for <query>")
   .command(
     "projects [query]",
     "show projects matching optional [query]",
