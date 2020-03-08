@@ -52,8 +52,8 @@ if (TYPE === "config") {
 
   if (!hasConfigFile()) {
     fs.writeFileSync(
-      JSON.stringify({ calendar: "" }, null, 2),
       CONFIG_FILE_PATH,
+      JSON.stringify({ calendar: "" }, null, 2),
       "utf-8"
     );
   }

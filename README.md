@@ -29,7 +29,7 @@ The system for describing logs looks like this:
 }
 ```
 
-3. `timav cache` - first time should be run in interactive bash session, as it will lead you through the setup process
+3. `DEBUG=* timav cache` - first time should be run in interactive bash session, as it will lead you through the setup process
 4. ideally add `timav cache` as a cronjob - I run it every 15 minutes
 
 ## Usage
