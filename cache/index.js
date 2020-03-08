@@ -17,14 +17,6 @@ const {
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
-if (!fs.existsSync(CREDENTIALS_PATH)) {
-  console.log(
-    "No .credentials.json found, create one here: https://console.developers.google.com/"
-  );
-
-  process.exit(1);
-}
-
 // tokens
 
 const storeToken = ({ calendar }, token) => {

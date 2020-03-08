@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require("fs");
-const mkdirp = require("mkdirp");
-const path = require("path");
 const yargs = require("yargs");
 const { spawn } = require("child_process");
 
@@ -12,14 +10,15 @@ const projects = require("./projects");
 const stats = require("./stats");
 const tags = require("./tags");
 
-const { CONFIG_PATH } = require("./utils/paths");
-const { getParsedEvents } = require("./utils/paths");
+const {
+  CONFIG_FILE_PATH,
+  CONFIG_PATH,
+  hasConfigFile,
+  hasCredentials,
+  getParsedEvents
+} = require("./utils/paths");
+
 const { loadConfig } = require("./utils/config");
-
-const CONFIG_FILE = path.join(CONFIG_PATH, "config.json");
-const DEFAULT_CONFIG = {};
-
-mkdirp(CONFIG_PATH);
 
 const args = yargs
   .command("config", "open configuration file")
@@ -46,29 +45,34 @@ const args = yargs
   .help().argv;
 
 const [TYPE] = args._;
+const COMMANDS = { habit, projects, stats, tags };
 
 if (TYPE === "config") {
   const editor = process.env.EDITOR || "vim";
 
-  if (!fs.existsSync(CONFIG_FILE)) {
+  if (!hasConfigFile()) {
     fs.writeFileSync(
-      JSON.stringify(DEFAULT_CONFIG, null, 2),
-      CONFIG_FILE,
+      JSON.stringify({ calendar: "" }, null, 2),
+      CONFIG_FILE_PATH,
       "utf-8"
     );
   }
 
-  spawn(editor, [CONFIG_FILE], { stdio: "inherit" });
+  spawn(editor, [CONFIG_FILE_PATH], { stdio: "inherit" });
+} else if (!hasCredentials()) {
+  console.log(
+    `
+No credentials.json found!
+
+1. create one here: https://console.developers.google.com/ for a CLI project with access to google calendar
+2. save it to ${CONFIG_PATH}/credentials.json
+`
+  );
+
+  process.exit(1);
 } else if (TYPE === "cache") {
   cache({ calendar: loadConfig().calendar });
-} else {
-  const COMMANDS = {
-    habit,
-    projects,
-    stats,
-    tags
-  };
-
+} else if (COMMANDS[TYPE]) {
   const { render, calculate } = COMMANDS[TYPE];
   const { calendar } = loadConfig();
 
