@@ -48,7 +48,10 @@ const getSyncInfo = ({ calendar }) => {
   const fileName = syncTokenPath(calendar);
 
   if (fs.existsSync(fileName)) {
-    return require(fileName);
+    const data = fs.readFileSync(fileName, { encoding: "utf-8" });
+    const parsed = JSON.parse(data);
+
+    return parsed;
   }
 
   return [];
