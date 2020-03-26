@@ -12,7 +12,7 @@ const {
   tokenPath,
   syncTokenPath,
   eventsPath,
-  parsedEventsPath
+  parsedEventsPath,
 } = require("../utils/paths");
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
@@ -47,17 +47,17 @@ const getSyncToken = ({ calendar }) => {
 const getNewToken = ({ calendar }, oauth2Client, callback) => {
   const authUrl = oauth2Client.generateAuthUrl({
     ["access_type"]: "offline",
-    scope: SCOPES
+    scope: SCOPES,
   });
 
   debug("Authorize this app by visiting this url:", authUrl);
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  rl.question("Enter the code from that page here:", code => {
+  rl.question("Enter the code from that page here:", (code) => {
     rl.close();
 
     oauth2Client.getToken(code, (err, token) => {
@@ -109,7 +109,7 @@ const getEvents = ({ auth, calendarId, pageToken, syncToken }, callback) => {
     calendarId,
     auth,
     maxResults: 100,
-    singleEvents: true
+    singleEvents: true,
   };
 
   if (pageToken) {
@@ -142,7 +142,7 @@ const getAllEvents = (
     if (!response.data.nextPageToken) {
       return callback(null, {
         events: nextAllEvents,
-        syncToken: response.data.nextSyncToken
+        syncToken: response.data.nextSyncToken,
       });
     }
 
@@ -152,7 +152,7 @@ const getAllEvents = (
         calendarId,
         pageToken: response.data.nextPageToken,
         syncToken,
-        allEvents: nextAllEvents
+        allEvents: nextAllEvents,
       },
       callback
     );
@@ -185,88 +185,92 @@ const getStoredEvents = ({ calendar }) => {
 
 // main
 
-module.exports = options => {
-  const credentials = require(CREDENTIALS_PATH);
+module.exports = (options) => {
+  return new Promise((resolve) => {
+    const credentials = require(CREDENTIALS_PATH);
 
-  authorize({ calendar: options.calendar }, credentials, (err, auth) => {
-    if (err) {
-      console.log("Error:", err);
-      process.exit(1);
-    }
-
-    getCalendars(auth, (err, res) => {
+    authorize({ calendar: options.calendar }, credentials, (err, auth) => {
       if (err) {
         console.log("Error:", err);
         process.exit(1);
       }
 
-      const calendar = res.data.items.find(
-        ({ summary }) => summary === options.calendar
-      );
+      getCalendars(auth, (err, res) => {
+        if (err) {
+          console.log("Error:", err);
+          process.exit(1);
+        }
 
-      if (!calendar) {
-        console.log("Error: no matching calendar found");
-        process.exit(1);
-      }
+        const calendar = res.data.items.find(
+          ({ summary }) => summary === options.calendar
+        );
 
-      getAllEvents(
-        {
-          auth,
-          calendarId: calendar.id,
-          syncToken: getSyncToken({ calendar: options.calendar })
-        },
-        (err, { events, syncToken }) => {
-          if (err) {
-            console.log("Error:", err);
-            process.exit(1);
-          }
+        if (!calendar) {
+          console.log("Error: no matching calendar found");
+          process.exit(1);
+        }
 
-          storeSyncToken({ calendar: options.calendar }, syncToken);
+        getAllEvents(
+          {
+            auth,
+            calendarId: calendar.id,
+            syncToken: getSyncToken({ calendar: options.calendar }),
+          },
+          (err, { events, syncToken }) => {
+            if (err) {
+              console.log("Error:", err);
+              process.exit(1);
+            }
 
-          if (events.length === 0) {
-            debug("No changes");
-            return;
-          }
+            storeSyncToken({ calendar: options.calendar }, syncToken);
 
-          debug("API events\n", events);
+            if (events.length === 0) {
+              debug("No changes");
+              return resolve();
+            }
 
-          const prevEvents = getStoredEvents({ calendar: options.calendar });
+            debug("API events\n", events);
 
-          const finalEvents = chain(prevEvents)
-            .map(e => {
-              const matchingEvent = events.find(e2 => e2.id === e.id);
+            const prevEvents = getStoredEvents({ calendar: options.calendar });
 
-              if (matchingEvent) {
-                debug("Updated event\n", matchingEvent);
-                return matchingEvent;
-              }
+            const finalEvents = chain(prevEvents)
+              .map((e) => {
+                const matchingEvent = events.find((e2) => e2.id === e.id);
 
-              return e;
-            })
-            .concat(
-              events.filter(e => {
-                // new
-                const matchingEvent = prevEvents.find(e2 => e2.id === e.id);
-
-                if (!matchingEvent) {
-                  debug("New event\n", e);
+                if (matchingEvent) {
+                  debug("Updated event\n", matchingEvent);
+                  return matchingEvent;
                 }
 
-                return !matchingEvent;
+                return e;
               })
-            )
-            .filter(e => e.status !== "cancelled")
-            .value();
+              .concat(
+                events.filter((e) => {
+                  // new
+                  const matchingEvent = prevEvents.find((e2) => e2.id === e.id);
 
-          const parsedEvents = chain(finalEvents)
-            .map(parseEvent)
-            .sortBy(e => e.start)
-            .value();
+                  if (!matchingEvent) {
+                    debug("New event\n", e);
+                  }
 
-          storeEvents({ calendar: options.calendar }, finalEvents);
-          storeParsedEvents({ calendar: options.calendar }, parsedEvents);
-        }
-      );
+                  return !matchingEvent;
+                })
+              )
+              .filter((e) => e.status !== "cancelled")
+              .value();
+
+            const parsedEvents = chain(finalEvents)
+              .map(parseEvent)
+              .sortBy((e) => e.start)
+              .value();
+
+            storeEvents({ calendar: options.calendar }, finalEvents);
+            storeParsedEvents({ calendar: options.calendar }, parsedEvents);
+
+            resolve();
+          }
+        );
+      });
     });
   });
 };

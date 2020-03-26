@@ -1,6 +1,6 @@
 {
   "name": "timav-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "cli tool and a library for working with time tracking data",
   "main": "index.js",
   "scripts": {},
