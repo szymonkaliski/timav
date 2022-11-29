@@ -1,6 +1,6 @@
 # timav
 
-timav is a cli tool and a library for working with time tracking data kept in google calendar. For historical reference check out [timav blog post](https://szymonkaliski.com/log/2017-04-30-time-tracking/).
+timav is a cli tool and a library for working with time tracking data kept in google calendar. For historical reference check out [timav blog post](https://szymonkaliski.com/writing/2017-04-30-time-tracking/).
 
 <p align="center"><img src="assets/dashboard.png" /></p>
 
