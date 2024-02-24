@@ -24,11 +24,11 @@ const calculateStreak = histogram => {
   return { longest: Math.max(longest, current), current };
 };
 
-module.exports = ({ events: allEvents, query }) => {
+module.exports = ({ events: allEvents, query, endDate }) => {
   const events = Object.values(filterEvents(allEvents, query));
 
   const durationDays = differenceInDays(last(events).start, first(events).end);
-  const domain = [startOfDay(first(events).start), endOfDay(new Date())];
+  const domain = [startOfDay(first(events).start), endOfDay(endDate || new Date())];
   const scale = scaleTime().domain(domain);
 
   const calculateHistogram = histogram()
