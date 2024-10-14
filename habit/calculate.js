@@ -5,7 +5,7 @@ const { first, last } = require("lodash");
 
 const { filterEvents } = require("../utils/filter");
 
-const calculateStreak = histogram => {
+const calculateStreak = (histogram) => {
   const { current, longest } = histogram.reduce(
     (acc, bin) => {
       const current = bin.length > 0 ? acc.current + 1 : 0;
@@ -15,7 +15,7 @@ const calculateStreak = histogram => {
 
       return {
         current,
-        longest
+        longest,
       };
     },
     { current: 0, longest: 0 }
@@ -28,11 +28,14 @@ module.exports = ({ events: allEvents, query, endDate }) => {
   const events = Object.values(filterEvents(allEvents, query));
 
   const durationDays = differenceInDays(last(events).start, first(events).end);
-  const domain = [startOfDay(first(events).start), endOfDay(endDate || new Date())];
+  const domain = [
+    startOfDay(first(events).start),
+    endOfDay(endDate || new Date()),
+  ];
   const scale = scaleTime().domain(domain);
 
   const calculateHistogram = histogram()
-    .value(e => e.start)
+    .value((e) => e.start)
     .domain(domain)
     .thresholds(scale.ticks(durationDays));
 
@@ -42,6 +45,6 @@ module.exports = ({ events: allEvents, query, endDate }) => {
   return {
     query,
     streak,
-    histogram: result
+    histogram: result,
   };
 };

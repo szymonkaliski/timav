@@ -10,20 +10,20 @@ module.exports = ({ events: allEvents, query, n }) => {
 
   let projects = chain(events)
     .values()
-    .filter(e => !!e.project)
-    .groupBy(e => e.project)
-    .map(g => {
-      const start = minBy(g, e => e.start).start;
-      const end = maxBy(g, e => e.end).end;
-      const totalTime = sumBy(g, e => e.duration);
+    .filter((e) => !!e.project)
+    .groupBy((e) => e.project)
+    .map((g) => {
+      const start = minBy(g, (e) => e.start).start;
+      const end = maxBy(g, (e) => e.end).end;
+      const totalTime = sumBy(g, (e) => e.duration);
       const totalDays = Object.keys(
-        groupBy(g, e => e.startDateStr.split("T")[0])
+        groupBy(g, (e) => e.startDateStr.split("T")[0])
       ).length;
 
       const tags = chain(g)
-        .map(g => g.tags)
+        .map((g) => g.tags)
         .flatten()
-        .map(t => (t.subTag ? `${t.tag}(${t.subTag})` : t.tag))
+        .map((t) => (t.subTag ? `${t.tag}(${t.subTag})` : t.tag))
         .uniq()
         .value();
 
@@ -34,10 +34,10 @@ module.exports = ({ events: allEvents, query, n }) => {
         end,
         tags,
         totalTime,
-        totalDays
+        totalDays,
       };
     })
-    .sortBy(g => g.end);
+    .sortBy((g) => g.end);
 
   if (n !== undefined) {
     projects = projects.takeRight(n);

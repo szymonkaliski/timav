@@ -7,5 +7,7 @@ module.exports = ({ eventsCount, totalTime, lastSync }) => {
   const events = `${chalk.gray(eventsCount)} events`;
   const hours = `${chalk.gray(Math.round(toHours(totalTime)))} hours`;
 
-  return `${events} ${chalk.gray("/")} ${hours} ${chalk.gray("/")} last synced ${sync}`;
+  return `${events} ${chalk.gray("/")} ${hours} ${chalk.gray(
+    "/"
+  )} last synced ${sync}`;
 };

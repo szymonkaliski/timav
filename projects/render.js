@@ -9,10 +9,10 @@ const RIGHT_WHISKER = "┤";
 const LINE = "─";
 
 const chart = (data, maxBarLength = 100) => {
-  const earliest = minBy(data, d => d.start).start;
-  const latest = maxBy(data, d => d.end).end;
+  const earliest = minBy(data, (d) => d.start).start;
+  const latest = maxBy(data, (d) => d.end).end;
 
-  const scale = t => {
+  const scale = (t) => {
     return (
       (t.getTime() - earliest.getTime()) /
       (latest.getTime() - earliest.getTime())
@@ -20,7 +20,7 @@ const chart = (data, maxBarLength = 100) => {
   };
 
   return data
-    .map(d => {
+    .map((d) => {
       const startPercent = scale(d.start);
       const endPercent = scale(d.end);
 
@@ -28,7 +28,7 @@ const chart = (data, maxBarLength = 100) => {
       const endPosition = Math.round(endPercent * (maxBarLength - 1));
 
       const bar = range(maxBarLength)
-        .map(i => {
+        .map((i) => {
           if (i === startPosition && i === endPosition) {
             return WHISKER;
           }

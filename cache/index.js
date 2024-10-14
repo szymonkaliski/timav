@@ -8,7 +8,6 @@ const { google } = require("googleapis");
 const { parseEvent } = require("../utils/parse");
 const {
   CREDENTIALS_PATH,
-
   tokenPath,
   syncTokenPath,
   eventsPath,
@@ -80,7 +79,7 @@ const getNewToken = ({ calendar }, oauth2Client, callback) => {
   }
 
   const authUrl = oauth2Client.generateAuthUrl({
-    ["access_type"]: "offline",
+    access_type: "offline",
     scope: SCOPES,
   });
 

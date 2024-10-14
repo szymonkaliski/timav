@@ -20,11 +20,11 @@ const bar = (value, maxValue, maxBarLength) => {
 
 const chart = (data, maxBarLength = 100) => {
   const maxDuration = maxBy(data, "duration").duration;
-  const maxTitleLength = maxBy(data, d => d.tag.length).tag.length;
+  const maxTitleLength = maxBy(data, (d) => d.tag.length).tag.length;
   const maxDurationLength = toHours(maxDuration).toFixed(0).length;
 
   return data
-    .map(d => {
+    .map((d) => {
       const prefix = padEnd(d.tag, maxTitleLength);
 
       const barText = bar(
@@ -40,6 +40,6 @@ const chart = (data, maxBarLength = 100) => {
     .join("\n");
 };
 
-module.exports = data => {
+module.exports = (data) => {
   return chart(data, Math.min(80, process.stdout.columns));
 };

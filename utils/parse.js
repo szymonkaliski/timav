@@ -3,18 +3,18 @@ const { chain } = require("lodash");
 
 const FULL_DAY_EVENT_DATE_LENGTH = "yyyy-mm-dd".length;
 
-const parseProject = title => {
+const parseProject = (title) => {
   const project = title.split("@")[0].trim();
 
   const tags = chain(title)
     .split("@")
     .slice(1)
-    .map(tag => {
+    .map((tag) => {
       if (tag.indexOf("(") >= 0) {
         const tagName = tag.match(/(.+)\(/)[1];
         const subTags = tag.match(/\((.+)(,|\))/)[1];
 
-        return subTags.split(",").map(subTag => ({ tag: tagName, subTag }));
+        return subTags.split(",").map((subTag) => ({ tag: tagName, subTag }));
       } else {
         return { tag: tag.trim() };
       }
@@ -25,7 +25,7 @@ const parseProject = title => {
   return { project, tags };
 };
 
-const parseToTimezoneIndependentDate = args => {
+const parseToTimezoneIndependentDate = (args) => {
   if (args.date) {
     return new Date(args.date);
   }
@@ -41,7 +41,7 @@ const parseWithTimezone = (dateStr, zone) => {
   return `${parsedStr}:00.000Z`;
 };
 
-const parseEvent = event => {
+const parseEvent = (event) => {
   // full-day events are markers
   const isMarker =
     event.start.date &&
@@ -93,7 +93,7 @@ const parseEvent = event => {
     endDateStr,
 
     orgStart,
-    orgEnd
+    orgEnd,
   };
 };
 

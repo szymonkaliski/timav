@@ -15,7 +15,7 @@ const {
   CONFIG_PATH,
   hasConfigFile,
   hasCredentials,
-  getParsedEvents
+  getParsedEvents,
 } = require("./utils/paths");
 
 const { loadConfig } = require("./utils/config");
@@ -24,20 +24,20 @@ const args = yargs
   .command("config", "open configuration file")
   .command("cache", "cache updated events")
   .command("stats", "show basic stats")
-  .command("tags", "top tags", yargs => {
+  .command("tags", "top tags", (yargs) => {
     yargs.option("n", {
       describe: "show top [n] tags",
-      default: 10
+      default: 10,
     });
   })
   .command("habit <query>", "habit and streak for <query>")
   .command(
     "projects [query]",
     "show projects matching optional [query]",
-    yargs => {
+    (yargs) => {
       yargs.option("n", {
         describe: "show last [n] project",
-        default: 10
+        default: 10,
       });
     }
   )
@@ -84,7 +84,7 @@ No credentials.json found!
   const renderData = calculate({
     events,
     calendar,
-    ...args
+    ...args,
   });
 
   console.log(render(renderData));

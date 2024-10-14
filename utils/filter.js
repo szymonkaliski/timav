@@ -2,7 +2,7 @@ const { startCase, isArray } = require("lodash");
 
 const { parseProject } = require("./parse");
 
-const stringifyFiltering = filtering => {
+const stringifyFiltering = (filtering) => {
   if (isArray(filtering)) {
     const [logic, filter] = filtering;
 
@@ -15,10 +15,7 @@ const stringifyFiltering = filtering => {
     }
   } else {
     return startCase(
-      filtering
-        .replace(/^@/, "")
-        .replace(/\(/, " ")
-        .replace(/\)/, " ")
+      filtering.replace(/^@/, "").replace(/\(/, " ").replace(/\)/, " ")
     );
   }
 };
@@ -79,7 +76,7 @@ const filterEvents = (events, filtering) => {
     // }
   } else {
     // if filtering is not an array, it means it's stringified tag + subtag
-    return events.filter(event => filterEvent(event, filtering));
+    return events.filter((event) => filterEvent(event, filtering));
   }
 };
 
