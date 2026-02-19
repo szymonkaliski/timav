@@ -50,15 +50,23 @@ const getNewToken = ({ calendar }, oauth2Client, callback) => {
     scope: SCOPES,
   });
 
-  debug("Authorize this app by visiting this url:", authUrl);
+  console.log("Authorize this app by visiting this url:", authUrl);
+  console.log("After authorizing, you'll be redirected to localhost (which won't load).");
+  console.log("Copy the full URL (or just the 'code' parameter) from the URL bar and paste it below.");
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  rl.question("Enter the code from that page here:", (code) => {
+  rl.question("Paste the URL or code here: ", (input) => {
     rl.close();
+
+    let code = input.trim();
+    try {
+      const url = new URL(code);
+      code = url.searchParams.get("code") || code;
+    } catch (_) {}
 
     oauth2Client.getToken(code, (err, token) => {
       if (err) {
@@ -79,7 +87,7 @@ const getNewToken = ({ calendar }, oauth2Client, callback) => {
 const authorize = ({ calendar }, credentials, callback) => {
   const clientSecret = credentials.installed.client_secret;
   const clientId = credentials.installed.client_id;
-  const redirectUrl = credentials.installed.redirect_uris[0];
+  const redirectUrl = "http://localhost";
 
   const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
 
