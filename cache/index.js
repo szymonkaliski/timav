@@ -17,6 +17,32 @@ const {
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
+// errors
+
+// strip sensitive request details (refresh_token, client_secret, auth headers) from gaxios/googleapis errors before logging
+const sanitizeError = (err) => {
+  if (!err || typeof err !== "object") {
+    return err;
+  }
+
+  const safe = {
+    message: err.message,
+    code: err.code,
+    errno: err.errno,
+    stack: err.stack,
+  };
+
+  if (err.response) {
+    safe.response = {
+      status: err.response.status,
+      statusText: err.response.statusText,
+      data: err.response.data,
+    };
+  }
+
+  return safe;
+};
+
 // tokens
 
 const storeToken = ({ calendar }, token) => {
@@ -70,7 +96,7 @@ const getNewToken = ({ calendar }, oauth2Client, callback) => {
 
     oauth2Client.getToken(code, (err, token) => {
       if (err) {
-        debug("Error while trying to retrieve access token:", err);
+        debug("Error while trying to retrieve access token:", sanitizeError(err));
         return;
       }
 
@@ -141,7 +167,7 @@ const getAllEvents = (
 
   getEvents({ auth, calendarId, pageToken, syncToken }, (err, response) => {
     if (err) {
-      console.log("Error:", err);
+      console.log("Error:", sanitizeError(err));
       return;
     }
 
@@ -199,13 +225,13 @@ module.exports = (options) => {
 
     authorize({ calendar: options.calendar }, credentials, (err, auth) => {
       if (err) {
-        console.log("Error:", err);
+        console.log("Error:", sanitizeError(err));
         process.exit(1);
       }
 
       getCalendars(auth, (err, res) => {
         if (err) {
-          console.log("Error:", err);
+          console.log("Error:", sanitizeError(err));
           process.exit(1);
         }
 
@@ -226,7 +252,7 @@ module.exports = (options) => {
           },
           (err, { events, syncToken }) => {
             if (err) {
-              console.log("Error:", err);
+              console.log("Error:", sanitizeError(err));
               process.exit(1);
             }
 
