@@ -71,6 +71,14 @@ const getSyncToken = ({ calendar }) => {
 };
 
 const getNewToken = ({ calendar }, oauth2Client, callback) => {
+  if (!process.stdin.isTTY) {
+    return callback(
+      new Error(
+        `no stored token for "${calendar}" and cannot prompt non-interactively; run \`timav cache\` in a terminal to authorize`
+      )
+    );
+  }
+
   const authUrl = oauth2Client.generateAuthUrl({
     ["access_type"]: "offline",
     scope: SCOPES,
