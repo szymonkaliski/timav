@@ -71,7 +71,10 @@ No credentials.json found!
 
   process.exit(1);
 } else if (TYPE === "cache") {
-  cache({ calendar: loadConfig().calendar });
+  cache({ calendar: loadConfig().calendar }).catch(() => {
+    // cache() already logged the error to stderr; just make systemd see the failure
+    process.exitCode = 1;
+  });
 } else if (COMMANDS[TYPE]) {
   const { render, calculate } = COMMANDS[TYPE];
   const { calendar } = loadConfig();

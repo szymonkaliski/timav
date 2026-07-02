@@ -97,7 +97,7 @@ const getNewToken = ({ calendar }, oauth2Client, callback) => {
     oauth2Client.getToken(code, (err, token) => {
       if (err) {
         debug("Error while trying to retrieve access token:", sanitizeError(err));
-        return;
+        return callback(err);
       }
 
       oauth2Client.credentials = token;
@@ -167,8 +167,8 @@ const getAllEvents = (
 
   getEvents({ auth, calendarId, pageToken, syncToken }, (err, response) => {
     if (err) {
-      console.log("Error:", sanitizeError(err));
-      return;
+      // propagate up to the promise's reject so the CLI can exit non-zero
+      return callback(err);
     }
 
     const nextAllEvents = allEvents.concat(response.data.items);
@@ -220,19 +220,38 @@ const getStoredEvents = ({ calendar }) => {
 // main
 
 module.exports = (options) => {
-  return new Promise((resolve) => {
-    const credentials = require(CREDENTIALS_PATH);
+  return new Promise((resolve, reject) => {
+    // log unconditionally to stderr (visible in journalctl without DEBUG=*) and
+    // reject so the CLI can exit non-zero and OnFailure= notifications fire
+    const fail = (err) => {
+      const status = err && (err.code || (err.response && err.response.status));
+
+      if (Number(status) === 410) {
+        console.error(
+          `Sync token for "${options.calendar}" is no longer valid (410 GONE). ` +
+            `Delete ${syncTokenPath(options.calendar)} and re-run to force a full re-sync.`
+        );
+      }
+
+      console.error("Error while caching:", sanitizeError(err));
+      reject(err);
+    };
+
+    let credentials;
+    try {
+      credentials = require(CREDENTIALS_PATH);
+    } catch (err) {
+      return fail(err);
+    }
 
     authorize({ calendar: options.calendar }, credentials, (err, auth) => {
       if (err) {
-        console.log("Error:", sanitizeError(err));
-        process.exit(1);
+        return fail(err);
       }
 
       getCalendars(auth, (err, res) => {
         if (err) {
-          console.log("Error:", sanitizeError(err));
-          process.exit(1);
+          return fail(err);
         }
 
         const calendar = res.data.items.find(
@@ -240,8 +259,7 @@ module.exports = (options) => {
         );
 
         if (!calendar) {
-          console.log("Error: no matching calendar found");
-          process.exit(1);
+          return fail(new Error(`no matching calendar found: ${options.calendar}`));
         }
 
         getAllEvents(
@@ -250,11 +268,12 @@ module.exports = (options) => {
             calendarId: calendar.id,
             syncToken: getSyncToken({ calendar: options.calendar }),
           },
-          (err, { events, syncToken }) => {
+          (err, result) => {
             if (err) {
-              console.log("Error:", sanitizeError(err));
-              process.exit(1);
+              return fail(err);
             }
+
+            const { events, syncToken } = result;
 
             storeSyncToken({ calendar: options.calendar }, syncToken);
 
